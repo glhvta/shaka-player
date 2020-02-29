@@ -129,4 +129,35 @@ describe('UITextDisplayer', () => {
           // 'writing-mode': 'horizontal-tb',
         }));
   });
+
+  it('correctly applies region styles for cues', async () => {
+    /** @type {!shaka.text.Cue} */
+    const cue = new shaka.text.Cue(0, 100, 'Captain\'s log.');
+    cue.region.id = 'r1';
+    cue.region.heightUnits = 1;
+    cue.region.widthUnits = 1;
+    cue.region.viewportAnchorUnits = 1;
+    cue.region.height = 15;
+    cue.region.width = 28;
+    cue.region.viewportAnchorY = 10;
+    cue.region.viewportAnchorX = 14;
+    cue.nestedCues = [];
+
+    textDisplayer.setTextVisibility(true);
+    textDisplayer.append([cue]);
+    // Wait until updateCaptions_() gets called.
+    await shaka.test.Util.delay(0.5);
+
+    const textContainer =
+        videoContainer.querySelector('.shaka-text-container');
+    const captions = textContainer.querySelector('span');
+    const cssObj = parseCssText(captions.style.cssText);
+    expect(cssObj).toEqual(
+        jasmine.objectContaining({
+          'height': '15%',
+          'width': '28%',
+          'top': '10%',
+          'left': '14%',
+        }));
+  });
 });
