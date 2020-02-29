@@ -39,13 +39,17 @@ describe('UITextDisplayer', () => {
   }
 
 
-  beforeAll(() => {
+  beforeEach(() => {
     videoContainer =
       /** @type {!HTMLElement} */ (document.createElement('div'));
     document.body.appendChild(videoContainer);
     video = shaka.test.UiUtils.createVideoElement();
     videoContainer.appendChild(video);
     textDisplayer = new shaka.ui.TextDisplayer(video, videoContainer);
+  });
+
+  afterEach(() => {
+    textDisplayer.destroy();
   });
 
   it('correctly displays styles for cues', async () => {
