@@ -164,7 +164,17 @@ shaka.ui.TextDisplayer = class {
     });
 
     for (const cue of currentCues) {
-      this.displayCue_(this.textContainer_, cue);
+      if (cue.nestedCues.length) {
+        this.displayNestedCues_(this.textContainer_, cue);
+      } else {
+        const cueContainer = this.displayCue_(
+            this.textContainer_,
+            cue,
+            /* isNested= */ false
+        );
+
+        this.currentCuesMap_.set(cue, cueContainer);
+      }
     }
   }
 
@@ -173,16 +183,17 @@ shaka.ui.TextDisplayer = class {
    *
    * @param {Element} container
    * @param {!shaka.extern.Cue} cue
+   * @param {boolean} isNested
    * @return {Element} the created captions container
    * @private
    */
-  displayNestedCue_(container, cue) {
+  displayCue_(container, cue, isNested) {
     const captions = shaka.util.Dom.createHTMLElement('span');
 
     if (cue.spacer) {
       captions.style.display = 'block';
     } else {
-      this.setCaptionStyles_(captions, cue, /* isNested= */ true);
+      this.setCaptionStyles_(captions, cue, isNested);
     }
 
     container.appendChild(captions);
@@ -191,27 +202,27 @@ shaka.ui.TextDisplayer = class {
   }
 
   /**
-   * Displays a cue
+   * Displays nested cues
    *
    * @param {Element} container
    * @param {!shaka.extern.Cue} cue
    * @private
    */
-  displayCue_(container, cue) {
-    if (cue.nestedCues.length) {
-      const nestedCuesContainer = shaka.util.Dom.createHTMLElement('p');
-      nestedCuesContainer.style.width = '100%';
-      this.setCaptionStyles_(nestedCuesContainer, cue, /* isNested= */ false);
+  displayNestedCues_(container, cue) {
+    const nestedCuesContainer = shaka.util.Dom.createHTMLElement('p');
+    nestedCuesContainer.style.width = '100%';
+    this.setCaptionStyles_(nestedCuesContainer, cue, /* isNested= */ false);
 
-      for (let i = 0; i < cue.nestedCues.length; i++) {
-        this.displayNestedCue_(nestedCuesContainer, cue.nestedCues[i]);
-      }
-
-      container.appendChild(nestedCuesContainer);
-      this.currentCuesMap_.set(cue, nestedCuesContainer);
-    } else {
-      this.currentCuesMap_.set(cue, this.displayNestedCue_(container, cue));
+    for (let i = 0; i < cue.nestedCues.length; i++) {
+      this.displayCue_(
+          nestedCuesContainer,
+          cue.nestedCues[i],
+          /* isNested= */ true
+      );
     }
+
+    container.appendChild(nestedCuesContainer);
+    this.currentCuesMap_.set(cue, nestedCuesContainer);
   }
 
   /**
